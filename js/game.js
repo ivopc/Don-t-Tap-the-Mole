@@ -12,7 +12,7 @@ var position = {
     lizard: []
 };
 
-var currentHoleContent = [null, null, null, null, null, null, null];
+var currentHoleContent = new Array(7);
 
 var holeSize = {
     width: 186,
