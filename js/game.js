@@ -59,7 +59,7 @@ var game = {};
 
 game.loop = () => {
     alreadyHavePoint = false;
-    currentHoleContent = [null, null, null, null, null, null, null];
+    currentHoleContent = new Array(7);
     clearCanvas();
     game.render();
 };
