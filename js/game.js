@@ -1,135 +1,98 @@
-var position = {
-    hole: [
-        {x: 13, y: 51},
-        {x: 223, y: 90},
-        {x: 432, y: 20},
-        {x: 62, y: 200},
-        {x: 432, y: 200},
-        {x: 22, y: 320},
-        {x: 316, y: 308}
-    ],
-    mole: [],
-    lizard: []
-};
+import { position, holeSize } from "./gamedata.js";
+import { ENEMIES, ENEMIES_ORDER, GAME_LOOP_DELAY } from "./constants.js";
 
-var currentHoleContent = new Array(7);
+class Game {
 
-var holeSize = {
-    width: 186,
-    height: 67
-};
+    constructor (canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
+        this.assets;
+        this.gameloop;
 
-for (let i = 0, l = position.hole.length; i < l; i++) {
-    position.mole[i] = {
-        x: position.hole[i].x + 49,
-        y: position.hole[i].y - 43
-    };
+        this.alreadyHavePoint = false;
+        this.points = 0;
+        this.holeContent = new Array(7);
+    }
 
-    position.lizard[i] = {
-        x: position.hole[i].x + 30,
-        y: position.hole[i].y - 23
-    };
-};
+    start () {
+        this.render();
+        this.addInteracions();
+        this.startUpdate();
+    }
 
-var enemies = ["mole", "lizard"],
-    alreadyHavePoint = false;
+    render () {
+        this.ctx.drawImage(this.assets.img["background"], 0, 0);
+        this.raffle();
+        this.setPoints(this.points);
+    }
 
-var canvas = document.querySelector("canvas"),
-    ctx = canvas.getContext("2d");
+    startUpdate () {
+        this.gameloop = setInterval(() => this.update(), GAME_LOOP_DELAY);
+    }
 
-var imgs = {};
-var imageLoader = (images, callback) => {
+    update () {
+        this.alreadyHavePoint = false;
+        this.holeContent = new Array(7);
+        this.clear();
+        this.render();
+    }
 
-    var total = images.length,
-        current = 0;
+    stopUpdate () {
+        clearInterval(this.gameloop);
+    }
 
-    for (let i = 0; i < total; i ++) {
-        var img = new Image();
-        img.src = images[i].src;
-        img.addEventListener("load", () => {
-            if (++current == total)
-                callback();
-        });
+    clear () {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
 
-        imgs[images[i].key] = img;
-    };
-};
-var points = 0;
-var game = {};
+    addInteracions () {
+        this.canvas.addEventListener("click", event => this.clickInteract.bind(this)(event));
+    }
 
-game.loop = () => {
-    alreadyHavePoint = false;
-    currentHoleContent = new Array(7);
-    clearCanvas();
-    game.render();
-};
-
-game.render = () => {
-    ctx.drawImage(imgs.background, 0, 0);
-    raffle();
-    setPoints(points);
-};
-
-var clearCanvas = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-};
-
-var setPoints = (number) => {
-    ctx.font = "20px Arial";
-    ctx.fillStyle = "white";
-    ctx.fillText("Pontos: " + String(number), 5, 20);
-};
-
-var raffle = () => {
-    var hole_id = Math.floor(Math.random() * position.hole.length),
-        enemie = enemies[Math.floor(Math.random() * enemies.length)];
-
-    currentHoleContent[hole_id] = enemie;
-
-    ctx.drawImage(imgs[enemie], position[enemie][hole_id].x, position[enemie][hole_id].y);
-};
-
-var clickInteract = (event) => {
-
-    // Se já tiver pego o ponto do inimigo atual
-    if (alreadyHavePoint)
-        return;
-    
-    var click = {
-        x: event.clientX, 
-        y: event.clientY
-    };
-    
-    for (let i = 0, l = position.hole.length; i < l; i ++) {
-        if (click.x >= position.hole[i].x && click.x <= position.hole[i].x + holeSize.width && 
-           click.y >= position.hole[i].y && click.y <= position.hole[i].y + holeSize.height) {
-
-            switch (currentHoleContent[i]) {
-                case "mole": {
-                    points --;
-                    alreadyHavePoint = true;
-                    document.querySelector("#incorrect").play();
-                    break;
+    clickInteract (event) {
+        if (this.alreadyHavePoint)
+            return;
+        const click = {
+            x: event.clientX, 
+            y: event.clientY
+        };
+        for (let i = 0; i < position.hole.length; i ++) {
+            if (click.x >= position.hole[i].x && click.x <= position.hole[i].x + holeSize.width && 
+               click.y >= position.hole[i].y && click.y <= position.hole[i].y + holeSize.height) {
+                switch (this.holeContent[i]) {
+                    case ENEMIES.MOLE: {
+                        this.points --;
+                        this.alreadyHavePoint = true;
+                        this.assets.audio["incorrect"].play();
+                        break;
+                    };
+                    case ENEMIES.LIZARD: {
+                        this.points ++;
+                        this.alreadyHavePoint = true;
+                        this.assets.audio["correct"].play();
+                        break;
+                    };
                 };
+            }
+        };
+    }
 
-                case "lizard": {
-                    points ++;
-                    alreadyHavePoint = true;
-                    document.querySelector("#correct").play();
-                    break;
-                };
-            };
-        }
-    };
+    raffle () {
+        const holeId = Math.floor(Math.random() * position.hole.length);
+        const enemie = ENEMIES_ORDER[Math.floor(Math.random() * ENEMIES_ORDER.length)];
+        this.holeContent[holeId] = enemie;
+        this.ctx.drawImage(this.assets.img[enemie], position[enemie][holeId].x, position[enemie][holeId].y);
+    }
+
+    setPoints (points) {
+        this.ctx.font = "20px Arial";
+        this.ctx.fillStyle = "white";
+        this.ctx.fillText("Pontos: " + String(points), 5, 20);
+    }
+
+    setAssets (assets) {
+        this.assets = assets;
+    }
 };
 
-canvas.addEventListener("click", clickInteract);
-
-imageLoader([
-    {key: "background", src: "img/ground.png"},
-    {key: "mole", src: "img/mole.png"},
-    {key: "lizard", src: "img/lizard.png"}
-], () => {
-    game.render();
-    game.update = setInterval(() => game.loop(), 1200);
-});
+export default Game;
