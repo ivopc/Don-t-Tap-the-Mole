@@ -23,9 +23,19 @@ for (let i = 0; i < position.hole.length; i ++) {
         y: position.hole[i].y - 23
     };
 };
+
 const holeSize = {
     width: 186,
     height: 67
 };
 
-export { position, holeSize };
+const pointsStyle = {
+    font: "20px Arial",
+    color: "white",
+    position: {
+        x: 5,
+        y: 20
+    }
+};
+
+export { position, holeSize, pointsStyle };

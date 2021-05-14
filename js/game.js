@@ -1,4 +1,4 @@
-import { position, holeSize } from "./gamedata.js";
+import { position, holeSize, pointsStyle } from "./layoutData.js";
 import { ENEMIES, ENEMIES_ORDER, GAME_LOOP_DELAY } from "./constants.js";
 
 class Game {
@@ -16,7 +16,7 @@ class Game {
 
     start () {
         this.render();
-        this.addInteracions();
+        this.addEvents();
         this.startUpdate();
     }
 
@@ -45,7 +45,7 @@ class Game {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    addInteracions () {
+    addEvents () {
         this.canvas.addEventListener("click", event => this.clickInteract.bind(this)(event));
     }
 
@@ -85,9 +85,9 @@ class Game {
     }
 
     setPoints (points) {
-        this.ctx.font = "20px Arial";
-        this.ctx.fillStyle = "white";
-        this.ctx.fillText("Pontos: " + String(points), 5, 20);
+        this.ctx.font = pointsStyle.font;
+        this.ctx.fillStyle = pointsStyle.color;
+        this.ctx.fillText("Pontos: " + String(points), pointsStyle.position.x, pointsStyle.position.y);
     }
 
     setAssets (assets) {
